@@ -123,7 +123,8 @@ def main(mzml_dir,
          bpi_offset,
          tic_offset,
          intensity_threshold):
-    fs = glob.glob(f"{mzml_dir}/*mzML*")
+
+    fs = sorted(glob.glob(f"{mzml_dir}/*_0s*mzML*"))
 
     plot_chromatograms(fs=fs,
                        output_path_pdf=output_path_pdf,
@@ -165,6 +166,6 @@ if __name__ == "__main__":
         mzml_dir=args.directory,
         output_path_pdf=args.output_path_pdf,
         bpi_offset=float(args.bpi_offset),
-        tic_offset=float(args.tics_offset),
+        tic_offset=float(args.tic_offset),
         intensity_threshold=float(args.intensity_threshold)
     )
