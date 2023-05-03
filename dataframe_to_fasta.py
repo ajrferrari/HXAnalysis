@@ -18,6 +18,8 @@ def main(dataframe,
 
     df = pd.read_csv(dataframe)
 
+    df.drop_duplicates(keep="first", inplace=True)
+
     df_to_fasta(df=df, output=output_path_fasta, col_name=col_name, col_sequence=col_sequence)
 
 
