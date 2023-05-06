@@ -66,12 +66,14 @@ if __name__ == '__main__':
     batch_size = 50
     b = babbler(batch_size=batch_size, model_path=MODEL_WEIGHT_PATH)
 
+    num_cores = mp.cpu_count()
     result_queue = mp.Queue()
     processes = []
     next_seq_index = 0
 
     while next_seq_index < len(seqs) or processes:
-        if len(processes) < 10 and next_seq_index < len(seqs):
+        if len(processes) < num_cores and next_seq_index < len(seqs):
+            print(f"Processing sequence index {next_seq_index}")
             p = mp.Process(target=process_seq, args=(next_seq_index, seqs[next_seq_index], b, result_queue))
             p.start()
             processes.append(p)
