@@ -1,18 +1,12 @@
 import sys
 import argparse
 import pandas as pd
-# import multiprocessing as mp
 import json
 
 def save_json(d, output_path):
     # Save dictionary to a JSON file
     with open(output_path, "w") as f:
         json.dump(d, f)
-
-# def process_seq(i, seq, b, result_queue):
-#     r = b.get_rep(seq)
-#     r_l = [list(i) for i in r]
-#     result_queue.put((i, [seq, r_l]))
 
 if __name__ == '__main__':
 
@@ -66,32 +60,13 @@ if __name__ == '__main__':
     batch_size = 50
     b = babbler(batch_size=batch_size, model_path=MODEL_WEIGHT_PATH)
 
-    # num_cores = mp.cpu_count()
-    # result_queue = mp.Queue()
-    # processes = []
-    # next_seq_index = 0
-
-    # while next_seq_index < len(seqs) or processes:
-    #     if len(processes) < num_cores and next_seq_index < len(seqs):
-    #         print(f"Processing sequence index {next_seq_index}")
-    #         p = mp.Process(target=process_seq, args=(next_seq_index, seqs[next_seq_index], b, result_queue))
-    #         p.start()
-    #         processes.append(p)
-    #         next_seq_index += 1
-    #
-    #     for p in processes:
-    #         if not p.is_alive():
-    #             p.join()
-    #             processes.remove(p)
-
     d = {}
-    # while not result_queue.empty():
-    #     i, result = result_queue.get()
-    #     d[i] = result
-
     for i, seq in enumerate(seqs):
+        print(f"Processing sequence index {i}")
         r = b.get_rep(seq)
         r_l = [list(i) for i in r]
         d[i] = [seq, r_l]
+        if i % 500 == 0 and i > 0:
+            save_json(d, args.output_path)
 
     save_json(f, args.output_path)
