@@ -101,8 +101,8 @@ if __name__ == '__main__':
     for i, seq in enumerate(seqs[args.first_seq_index:args.last_seq_index]):
         print(f"Processing sequence index {i}")
         r = b.get_rep(seq)
-        r_l = [list(i) for i in r]
-        d[i] = [seq, r_l]
+        r_l = [i.tolist() for i in r]
+        d[i] = r_l
         if i % 500 == 0 and i > 0:
             save_json(d, args.output_path)
 
