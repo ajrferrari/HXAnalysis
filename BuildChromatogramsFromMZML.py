@@ -7,9 +7,8 @@ import argparse
 
 
 def get_unique_mzs(scans):
-    mzs = []
-    for scan in scans:
-        mzs = np.unique(list(mzs) + list(scan[:, 0]))
+
+    mzs = np.unique(np.concatenate([scan[:, 0] for scan in scans]))
 
     return mzs
 
@@ -17,11 +16,18 @@ def get_unique_mzs(scans):
 def get_intensities_from_unique_mzs(mzs, scans):
     array = np.zeros(len(mzs), dtype=np.float32)
     for scan in scans:
-        array[np.searchsorted(mzs, scan[:, 0])] += scan[:, 1]
+        indices = np.searchsorted(mzs, scan[:, 0])
+        np.add.at(array, indices, scan[:, 1])
     return array
+
+def pad_lists(lists):
+    max_length = max(len(lst) for lst in lists)
+    padded_lists = [[0] * (max_length - len(lst)) + lst for lst in lists]
+    return np.array(padded_lists)
 
 
 def get_bpi_tics(mzml, intensity_threshold=10):
+
     times, bpis, tics = [], [], []
 
     time = 0
@@ -65,7 +71,8 @@ def get_bpi_tics(mzml, intensity_threshold=10):
     bpis.append(bpi)
     tics.append(tic)
 
-    return times, bpis, tics
+
+    return pad_lists(times), pad_lists(bpis), pad_lists(tics)
 
 
 def plot_chromatograms(fs,
@@ -88,15 +95,15 @@ def plot_chromatograms(fs,
             bpis.append(bpi)
             tics.append(tic)
 
-    fig, ax = plt.subplots(2, 2, figsize=(6, 5), width_ratios=[2, 1], dpi=300, constrained_layout=True)
+    fig, ax = plt.subplots(2, 2, figsize=(6/5, 5), width_ratios=[2, 1], dpi=300, constrained_layout=True)
 
     for i, f in enumerate(fs):
         name = f.split("/")[-1].replace(".mzML.gz", "")
 
-        ax[0][0].plot(times[i], np.array(bpis[i]) + (i + 1) * bpi_offset, lw=0.8, label=name)
-        ax[1][0].plot(times[i], np.array(tics[i]) + (i + 1) * tic_offset, lw=0.8, label=name)
+        ax[0][0].plot(times[i], bpis[i] + (i + 1) * bpi_offset, lw=0.8, label=name)
+        ax[1][0].plot(times[i], tics[i] + (i + 1) * tic_offset, lw=0.8, label=name)
 
-    sns.heatmap(np.corrcoef(np.array(bpis)), ax=ax[0][1], vmin=0, vmax=1,
+    sns.heatmap(np.corrcoef(bpis), ax=ax[0][1], vmin=0, vmax=1,
                 cmap="vlag", cbar_kws={"label": "pearsonr"}, annot=True, annot_kws={"size": 7})
     sns.heatmap(np.corrcoef(np.array(tics)), ax=ax[1][1], vmin=0, vmax=1,
                 cbar_kws={"label": "pearsonr"}, cmap="vlag", annot=True, annot_kws={"size": 7})
@@ -152,12 +159,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-bo",
         "--bpi_offset", help="bpi_offset to visualize different chromatograms together",
-        default=0
+        default=1e5
     )
     parser.add_argument(
         "-to",
         "--tic_offset", help="tic_offset to visualize different chromatograms together",
-        default=0
+        default=1e7
     )
 
     args = parser.parse_args()
